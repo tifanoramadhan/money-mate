@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoneyMate | Tambah Transaksi</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="app-container">
+
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">M</div>
+                <h2>MoneyMate</h2>
+            </div>
+
+            <p class="menu-label">MENU UTAMA</p>
+
+            <nav class="navigation">
+                <a href="/" class="nav-link">
+                    <span>▦</span> Dashboard
+                </a>
+                <a href="/transactions" class="nav-link">
+                    <span>⇄</span> Transaksi
+                </a>
+                <a href="/add-transaction" class="nav-link active">
+                    <span>＋</span> Tambah Transaksi
+                </a>
+                <a href="/savings" class="nav-link">
+                    <span>◎</span> Target Tabungan
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>Kelola uangmu dengan lebih baik.</p>
+                <small>MoneyMate © 2026</small>
+            </div>
+        </aside>
+
+        <main class="main-content">
+
+            <header class="topbar">
+                <div>
+                    <p class="greeting">Catat keuanganmu</p>
+                    <h1>Tambah Transaksi</h1>
+                    <p class="subtitle">
+                        Masukkan detail pemasukan atau pengeluaran.
+                    </p>
+                </div>
+
+                <a href="/" class="primary-button">
+                    Kembali ke Dashboard
+                </a>
+            </header>
+
+            <section class="panel form-panel">
+
+                <div class="panel-header">
+                    <div>
+                        <h3>Detail Transaksi</h3>
+                        <p>Isi informasi transaksi di bawah ini.</p>
+                    </div>
+                </div>
+
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="form-message">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form action="/add-transaction" method="POST"
+                      class="transaction-form">
+
+                    <div class="form-group">
+                        <label for="name">Nama Transaksi</label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            placeholder="Contoh: Makan siang"
+                            maxlength="100"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="type">Jenis Transaksi</label>
+                        <select id="type" name="type" required>
+                            <option value="">Pilih jenis transaksi</option>
+                            <option value="income">Pemasukan</option>
+                            <option value="expense">Pengeluaran</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Kategori</label>
+                        <select id="category" name="category" required>
+                            <option value="">Pilih kategori</option>
+                            <option value="Gaji">Gaji</option>
+                            <option value="Uang Saku">Uang Saku</option>
+                            <option value="Makanan">Makanan</option>
+                            <option value="Transportasi">Transportasi</option>
+                            <option value="Pendidikan">Pendidikan</option>
+                            <option value="Hiburan">Hiburan</option>
+                            <option value="Belanja">Belanja</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date">Tanggal Transaksi</label>
+                        <input
+                            type="date"
+                            id="date"
+                            name="date"
+                            value="{{ today }}"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount">Jumlah (Rupiah)</label>
+                        <input
+                            type="number"
+                            id="amount"
+                            name="amount"
+                            placeholder="Contoh: 25000"
+                            min="1"
+                            step="1"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="/" class="secondary-button">
+                            Batal
+                        </a>
+
+                        <button type="submit" class="primary-button">
+                            Simpan Transaksi
+                        </button>
+                    </div>
+
+                </form>
+            </section>
+
+        </main>
+    </div>
+
+</body>
+</html>

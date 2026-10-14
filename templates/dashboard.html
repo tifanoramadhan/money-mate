@@ -1,0 +1,379 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MoneyMate | Dashboard</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+
+        <!-- Sidebar navigasi -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">M</div>
+                <h2>MoneyMate</h2>
+            </div>
+
+            <p class="menu-label">MENU UTAMA</p>
+
+            <nav class="navigation">
+                <a href="{{ url_for('dashboard') }}" class="nav-link active">
+                    <span>▦</span> Dashboard
+                </a>
+
+                <a href="{{ url_for('transactions_page') }}" class="nav-link">
+                    <span>⇄</span> Transaksi
+                </a>
+
+                <a href="{{ url_for('add_transaction') }}" class="nav-link">
+                    <span>＋</span> Tambah Transaksi
+                </a>
+
+                <a href="{{ url_for('savings_page') }}" class="nav-link">
+                    <span>◎</span> Target Tabungan
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>Kelola uangmu dengan lebih baik.</p>
+                <small>MoneyMate © 2026</small>
+            </div>
+        </aside>
+
+        <!-- Konten utama -->
+        <main class="main-content">
+
+            <header class="topbar">
+                <div>
+                    <p class="greeting">Selamat datang kembali 👋</p>
+                    <h1>Dashboard</h1>
+                    <p class="subtitle">
+                        Berikut ringkasan kondisi keuanganmu.
+                    </p>
+                </div>
+
+                <a
+                    href="{{ url_for('add_transaction') }}"
+                    class="primary-button"
+                >
+                    + Tambah Transaksi
+                </a>
+            </header>
+
+            <!-- Pesan notifikasi -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="form-message">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Ringkasan keuangan -->
+            <section class="summary-grid">
+
+                <article class="summary-card balance-card">
+                    <p>Total Saldo</p>
+                    <h2>
+                        Rp{{ "{:,.0f}".format(balance).replace(",", ".") }}
+                    </h2>
+                    <small>Saldo pemasukan dikurangi pengeluaran</small>
+                </article>
+
+                <article class="summary-card">
+                    <p>Total Pemasukan</p>
+                    <h2>
+                        Rp{{ "{:,.0f}".format(total_income).replace(",", ".") }}
+                    </h2>
+                    <small>Total uang yang diterima</small>
+                </article>
+
+                <article class="summary-card">
+                    <p>Total Pengeluaran</p>
+                    <h2>
+                        Rp{{ "{:,.0f}".format(total_expense).replace(",", ".") }}
+                    </h2>
+                    <small>Total uang yang digunakan</small>
+                </article>
+
+            </section>
+
+            <!-- Grafik dan ringkasan tabungan -->
+            <section class="content-grid">
+
+                <article class="panel chart-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Ringkasan Keuangan</h3>
+                            <p>Pemasukan dan pengeluaran per bulan</p>
+                        </div>
+
+                        <span class="period-label">6 Bulan Terakhir</span>
+                    </div>
+
+                    <div class="finance-chart-container">
+                        <canvas id="financeChart"></canvas>
+                    </div>
+
+                    <p
+                        id="chartEmptyMessage"
+                        class="empty-table"
+                        hidden
+                    >
+                        Belum ada transaksi untuk ditampilkan pada grafik.
+                    </p>
+                </article>
+
+                <article class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Target Tabungan</h3>
+                            <p>Progres seluruh targetmu</p>
+                        </div>
+                    </div>
+
+                    <div class="savings-summary">
+
+                        <div class="savings-summary-item">
+                            <span>Total Target</span>
+                            <strong>
+                                Rp{{ "{:,.0f}".format(total_savings_target).replace(",", ".") }}
+                            </strong>
+                        </div>
+
+                        <div class="savings-summary-item">
+                            <span>Sudah Terkumpul</span>
+                            <strong class="savings-complete">
+                                Rp{{ "{:,.0f}".format(total_saved).replace(",", ".") }}
+                            </strong>
+                        </div>
+
+                        {% if total_savings_target > 0 %}
+                            {% set savings_progress = [
+                                total_saved / total_savings_target * 100,
+                                100
+                            ] | min %}
+
+                            <div class="progress-track">
+                                <div
+                                    class="progress-fill"
+                                    data-progress="{{ savings_progress | int }}"
+                                ></div>
+                            </div>
+
+                            <p class="savings-progress-text">
+                                {{ "%.1f" | format(savings_progress) }}% dari total target
+                            </p>
+                        {% else %}
+                            <p class="empty-state">
+                                Belum ada target tabungan.
+                            </p>
+                        {% endif %}
+
+                        <a
+                            href="{{ url_for('savings_page') }}"
+                            class="text-link"
+                        >
+                            Kelola target tabungan →
+                        </a>
+
+                    </div>
+                </article>
+
+            </section>
+
+            <!-- Transaksi terbaru -->
+            <section class="panel transactions-panel">
+
+                <div class="panel-header">
+                    <div>
+                        <h3>Transaksi Terbaru</h3>
+                        <p>Catatan pemasukan dan pengeluaranmu</p>
+                    </div>
+
+                    <a
+                        href="{{ url_for('transactions_page') }}"
+                        class="text-link"
+                    >
+                        Lihat semua
+                    </a>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Transaksi</th>
+                                <th>Kategori</th>
+                                <th>Tanggal</th>
+                                <th>Jenis</th>
+                                <th>Jumlah</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% if transactions %}
+                                {% for item in transactions %}
+                                    <tr>
+                                        <td>{{ item.name }}</td>
+                                        <td>{{ item.category }}</td>
+                                        <td>{{ item.date }}</td>
+
+                                        <td>
+                                            {% if item.type == "income" %}
+                                                <span class="transaction-income">
+                                                    Pemasukan
+                                                </span>
+                                            {% else %}
+                                                <span class="transaction-expense">
+                                                    Pengeluaran
+                                                </span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if item.type == "income" %}
+                                                <span class="transaction-income">
+                                                    + Rp{{ "{:,.0f}".format(item.amount).replace(",", ".") }}
+                                                </span>
+                                            {% else %}
+                                                <span class="transaction-expense">
+                                                    - Rp{{ "{:,.0f}".format(item.amount).replace(",", ".") }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="empty-table">
+                                        Belum ada transaksi. Tambahkan transaksi pertamamu!
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Grafik keuangan menggunakan Chart.js -->
+    <script>
+      const chartLabels = JSON.parse('{{ chart_labels | tojson }}');
+const chartIncome = JSON.parse('{{ chart_income | tojson }}');
+const chartExpense = JSON.parse('{{ chart_expense | tojson }}');
+
+        const chartElement = document.getElementById("financeChart");
+        const emptyMessage = document.getElementById("chartEmptyMessage");
+
+        if (
+            chartElement &&
+            typeof Chart !== "undefined" &&
+            chartLabels.length > 0
+        ) {
+            new Chart(chartElement, {
+                type: "bar",
+
+                data: {
+                    labels: chartLabels,
+                    datasets: [
+                        {
+                            label: "Pemasukan",
+                            data: chartIncome,
+                            backgroundColor: "#34d399",
+                            borderRadius: 6
+                        },
+                        {
+                            label: "Pengeluaran",
+                            data: chartExpense,
+                            backgroundColor: "#fb7185",
+                            borderRadius: 6
+                        }
+                    ]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: "#e5e7eb"
+                            }
+                        },
+
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return context.dataset.label + ": Rp" +
+                                        new Intl.NumberFormat("id-ID").format(
+                                            context.raw
+                                        );
+                                }
+                            }
+                        }
+                    },
+
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: "#a1a1aa"
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+
+                        y: {
+                            beginAtZero: true,
+
+                            ticks: {
+                                color: "#a1a1aa",
+
+                                callback: function (value) {
+                                    return "Rp" +
+                                        new Intl.NumberFormat("id-ID", {
+                                            notation: "compact"
+                                        }).format(value);
+                                }
+                            },
+
+                            grid: {
+                                color: "#343450"
+                            }
+                        }
+                    }
+                }
+            });
+        } else if (emptyMessage) {
+            emptyMessage.hidden = false;
+        }
+
+        // Mengatur progres tabungan pada dashboard
+        document.querySelectorAll(".progress-fill[data-progress]").forEach(
+            function (bar) {
+                const progress = Number(bar.dataset.progress) || 0;
+                bar.style.width = Math.min(Math.max(progress, 0), 100) + "%";
+            }
+        );
+    </script>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

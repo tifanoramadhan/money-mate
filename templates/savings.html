@@ -1,0 +1,303 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Target Tabungan | MoneyMate</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 10px 16px;
+            background: #25283f;
+            color: #ffffff;
+            border: 1px solid #3b3f5c;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            white-space: nowrap;
+            transition: background 0.2s ease;
+        }
+
+        .back-button:hover {
+            background: #353a58;
+        }
+
+        @media (max-width: 600px) {
+            .back-button {
+                margin-top: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>MoneyMate</h2>
+                <p>Personal Finance</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('dashboard') }}">
+                    Dashboard
+                </a>
+
+                <a href="{{ url_for('transactions_page') }}">
+                    Transaksi
+                </a>
+
+                <a href="{{ url_for('add_transaction') }}">
+                    Tambah Transaksi
+                </a>
+
+                <a
+                    href="{{ url_for('savings_page') }}"
+                    class="active"
+                >
+                    Target Tabungan
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Konten utama -->
+        <main class="main-content">
+
+            <!-- Judul dan tombol kembali -->
+            <header class="page-header">
+                <div>
+                    <h1>Target Tabungan</h1>
+                    <p>Atur target dan pantau progres tabunganmu.</p>
+                </div>
+
+                <a
+                    href="{{ url_for('dashboard') }}"
+                    class="back-button"
+                >
+                    &larr; Kembali ke Dashboard
+                </a>
+            </header>
+
+            <!-- Notifikasi Flask -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="form-message">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Form membuat target -->
+            <section class="panel form-panel">
+                <h2>Buat Target Baru</h2>
+
+                <form method="POST" class="transaction-form">
+
+                    <div class="form-group">
+                        <label for="name">Nama Target</label>
+
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            placeholder="Contoh: Beli laptop"
+                            maxlength="100"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="target_amount">
+                            Target Tabungan (Rp)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="target_amount"
+                            name="target_amount"
+                            min="1"
+                            step="1"
+                            placeholder="1000000"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="saved_amount">
+                            Uang Terkumpul Saat Ini (Rp)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="saved_amount"
+                            name="saved_amount"
+                            min="0"
+                            step="1"
+                            value="0"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-actions">
+                        <button
+                            type="submit"
+                            class="primary-button"
+                        >
+                            Simpan Target
+                        </button>
+                    </div>
+
+                </form>
+            </section>
+
+            <!-- Daftar target tabungan -->
+            <section class="panel">
+                <h2>Daftar Target Tabungan</h2>
+
+                {% if savings_goals %}
+
+                    <div class="savings-list">
+
+                        {% for goal in savings_goals %}
+
+                            {% set progress = [
+                                goal.saved_amount / goal.target_amount * 100,
+                                100
+                            ] | min %}
+
+                            <article class="savings-card">
+
+                                <div class="savings-card-header">
+                                    <h3>{{ goal.name }}</h3>
+
+                                    <span>
+                                        {{ "%.1f" | format(progress) }}%
+                                    </span>
+                                </div>
+
+                                <p>
+                                    Rp{{ "{:,.0f}".format(
+                                        goal.saved_amount
+                                    ).replace(",", ".") }}
+
+                                    dari
+
+                                    Rp{{ "{:,.0f}".format(
+                                        goal.target_amount
+                                    ).replace(",", ".") }}
+                                </p>
+
+                                <!-- Progress bar -->
+                                <div class="progress-track">
+                                    <div
+                                        class="progress-fill"
+                                        data-progress="{{ progress | int }}"
+                                    ></div>
+                                </div>
+
+                                <!-- Status target -->
+                                {% if goal.saved_amount >= goal.target_amount %}
+
+                                    <p class="savings-complete">
+                                        Target tercapai!
+                                    </p>
+
+                                {% else %}
+
+                                    <p>
+                                        Kurang Rp{{ "{:,.0f}".format(
+                                            goal.target_amount
+                                            - goal.saved_amount
+                                        ).replace(",", ".") }}
+                                    </p>
+
+                                {% endif %}
+
+                                <!-- Menambah tabungan -->
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'add_savings',
+                                        goal_id=goal.id
+                                    ) }}"
+                                    class="savings-add-form"
+                                >
+                                    <input
+                                        type="number"
+                                        name="amount"
+                                        min="1"
+                                        step="1"
+                                        placeholder="Jumlah uang (Rp)"
+                                        required
+                                    >
+
+                                    <button
+                                        type="submit"
+                                        class="primary-button"
+                                    >
+                                        Tambah Tabungan
+                                    </button>
+                                </form>
+
+                                <!-- Menghapus target -->
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'delete_savings',
+                                        goal_id=goal.id
+                                    ) }}"
+                                    data-confirm-delete="Yakin ingin menghapus target tabungan ini?"
+                                >
+                                    <button
+                                        type="submit"
+                                        class="delete-button"
+                                    >
+                                        Hapus Target
+                                    </button>
+                                </form>
+
+                            </article>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <p>
+                        Belum ada target tabungan.
+                        Yuk, buat target pertamamu!
+                    </p>
+
+                {% endif %}
+            </section>
+
+        </main>
+    </div>
+
+    <!-- JavaScript utama -->
+    <script
+        src="{{ url_for('static', filename='js/script.js') }}"
+    ></script>
+</body>
+</html>

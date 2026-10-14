@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoneyMate | Transaksi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">M</div>
+                <h2>MoneyMate</h2>
+            </div>
+
+            <p class="menu-label">MENU UTAMA</p>
+            <nav class="navigation">
+                <a href="/" class="nav-link"><span>▦</span> Dashboard</a>
+                <a href="/transactions" class="nav-link active"><span>⇄</span> Transaksi</a>
+                <a href="/add-transaction" class="nav-link"><span>＋</span> Tambah Transaksi</a>
+                <a href="/savings" class="nav-link"><span>◎</span> Target Tabungan</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>Kelola uangmu dengan lebih baik.</p>
+                <small>MoneyMate © 2026</small>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <p class="greeting">Catatan keuanganmu</p>
+                    <h1>Transaksi</h1>
+                    <p class="subtitle">Kelola semua pemasukan dan pengeluaran.</p>
+                </div>
+
+                <a href="/add-transaction" class="primary-button">
+                    + Tambah Transaksi
+                </a>
+            </header>
+
+            <section class="panel transactions-panel">
+                {% with messages = get_flashed_messages() %}
+                    {% for message in messages %}
+                        <div class="form-message">{{ message }}</div>
+                    {% endfor %}
+                {% endwith %}
+
+                <div class="panel-header">
+                    <div>
+                        <h3>Riwayat Transaksi</h3>
+                        <p>{{ transactions|length }} transaksi tercatat</p>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama</th>
+                                <th>Kategori</th>
+                                <th>Tanggal</th>
+                                <th>Jenis</th>
+                                <th>Jumlah</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in transactions %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.category }}</td>
+                                    <td>{{ item.date }}</td>
+                                    <td>
+                                        {% if item.type == "income" %}
+                                            <span class="transaction-income">Pemasukan</span>
+                                        {% else %}
+                                            <span class="transaction-expense">Pengeluaran</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.type == "income" %}
+                                            <span class="transaction-income">
+                                                + Rp{{ "{:,.0f}".format(item.amount).replace(",", ".") }}
+                                            </span>
+                                        {% else %}
+                                            <span class="transaction-expense">
+                                                - Rp{{ "{:,.0f}".format(item.amount).replace(",", ".") }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a class="edit-button"
+                                               href="{{ url_for('edit_transaction', transaction_id=item.id) }}">
+                                                Edit
+                                            </a>
+
+                                            <form method="POST"
+                                                  action="{{ url_for('delete_transaction', transaction_id=item.id) }}"
+                                                  onsubmit="return confirm('Yakin ingin menghapus transaksi ini?')">
+                                                <button type="submit" class="delete-button">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="empty-table">
+                                        Belum ada transaksi. Tambahkan transaksi pertamamu!
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

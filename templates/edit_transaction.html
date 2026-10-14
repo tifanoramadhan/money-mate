@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoneyMate | Edit Transaksi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">M</div>
+                <h2>MoneyMate</h2>
+            </div>
+
+            <p class="menu-label">MENU UTAMA</p>
+            <nav class="navigation">
+                <a href="/" class="nav-link"><span>▦</span> Dashboard</a>
+                <a href="/transactions" class="nav-link active"><span>⇄</span> Transaksi</a>
+                <a href="/add-transaction" class="nav-link"><span>＋</span> Tambah Transaksi</a>
+                <a href="/savings" class="nav-link"><span>◎</span> Target Tabungan</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>Kelola uangmu dengan lebih baik.</p>
+                <small>MoneyMate © 2026</small>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <p class="greeting">Perbarui catatanmu</p>
+                    <h1>Edit Transaksi</h1>
+                    <p class="subtitle">Ubah detail transaksi yang sudah tersimpan.</p>
+                </div>
+                <a href="/transactions" class="secondary-button">Kembali</a>
+            </header>
+
+            <section class="panel form-panel">
+                {% with messages = get_flashed_messages() %}
+                    {% for message in messages %}
+                        <div class="form-message">{{ message }}</div>
+                    {% endfor %}
+                {% endwith %}
+
+                <form method="POST" class="transaction-form">
+                    <div class="form-group">
+                        <label for="name">Nama Transaksi</label>
+                        <input type="text" id="name" name="name"
+                               value="{{ transaction.name }}" maxlength="100" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="type">Jenis Transaksi</label>
+                        <select id="type" name="type" required>
+                            <option value="income" {% if transaction.type == "income" %}selected{% endif %}>Pemasukan</option>
+                            <option value="expense" {% if transaction.type == "expense" %}selected{% endif %}>Pengeluaran</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Kategori</label>
+                        <select id="category" name="category" required>
+                            {% for category in ["Gaji", "Uang Saku", "Makanan", "Transportasi", "Pendidikan", "Hiburan", "Belanja", "Lainnya"] %}
+                                <option value="{{ category }}" {% if transaction.category == category %}selected{% endif %}>{{ category }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date">Tanggal Transaksi</label>
+                        <input type="date" id="date" name="date"
+                               value="{{ transaction.date }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount">Jumlah (Rupiah)</label>
+                        <input type="number" id="amount" name="amount"
+                               value="{{ transaction.amount }}" min="1" step="1" required>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="/transactions" class="secondary-button">Batal</a>
+                        <button type="submit" class="primary-button">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
